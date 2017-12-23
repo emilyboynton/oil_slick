@@ -1,12 +1,7 @@
-
 //HAVE TO HAVE TO REFACTOR
 //SUUUPER MESSY
-
-//        NOTES TO SELF
-//        N1, N2, AND WAVES2 NEVER CHANGE
-
     
-//        REST IN ORDER B, P, G:
+//       IN ORDER B, P, G:
 
 //  1. circle(.1)
 //     swirl(p, .01)
@@ -26,34 +21,31 @@
 
 
 //dynamic list of points
-ArrayList<PVector> points = new ArrayList<PVector>();
-ArrayList<PVector> points2 = new ArrayList<PVector>();
-ArrayList<PVector> points3 = new ArrayList<PVector>();
-
+ArrayList<PVector> blue_field = new ArrayList<PVector>();
+ArrayList<PVector> pink_field = new ArrayList<PVector>();
+ArrayList<PVector> green_field = new ArrayList<PVector>();
+ArrayList<ArrayList> fields = new ArrayList<ArrayList>();  // will contain the above
 
 // colors used for points
-color[] pal = {
+color[] blue_pal = {
   color(0, 91, 197, 60),
   color(0, 180, 252, 60),
   color(23, 249, 255, 60),
   color(223, 147, 0, 60),
-  //color(248, 190, 0, 50)
 };
 
-color[] pal2 = {
+color[] pink_pal = {
   color(91, 0, 197, 60),
   color(180, 0, 252, 60),
   color(249, 23, 255, 60),
   color(147, 223, 0, 60),
-  //color(248, 190, 0, 50)
 };
 
-color[] pal3 = {
+color[] green_pal = {
   color(91, 197, 20, 60),
   color(160, 252, 20, 60),
   color(0, 255, 23, 60),
   color(0, 223, 220, 60),
-  //color(248, 190, 0, 50)
 };
 
 
@@ -69,121 +61,76 @@ void setup(){
   background(0, 5, 25);
   noFill();
   smooth(8);
-
+  
+  fields.add(blue_field);
+  fields.add(pink_field);
+  fields.add(green_field);
+  println(fields);
+  
+  for (ArrayList f: fields){
     for (float x=-6; x<=6; x+=0.07) {
       for (float y=-6; y<=6; y+=0.07) {
         // create point slightly distorted
         PVector v = new PVector(x+randomGaussian()*0.05, y+randomGaussian()*0.05);
-        points.add(v);
+        f.add(v);
+      }
     }
   }
-  
-    for (float x=-6; x<=6; x+=0.07) {
-    for (float y=-6; y<=6; y+=0.07) {
-      // create point slightly distorted
-      PVector v = new PVector(x+randomGaussian()*0.05, y+randomGaussian()*0.05);
-      points2.add(v);
-    }
-  }
-  
-  for (float x=-6; x<=6; x+=0.07) {
-    for (float y=-6; y<=6; y+=0.07) {
-      // create point slightly distorted
-      PVector v = new PVector(x+randomGaussian()*0.05, y+randomGaussian()*0.05);
-      points3.add(v);
-    }
-  }
-  
 }
+
 
 void draw(){
+  // for each field in fields (blue, pink, green)
+  for (ArrayList<PVector> f: fields){
+    int point = 0;
+    color pal[];
+    PVector v1;
+    float time1;  // var in n1
+    float time2;  // var in n2
 
-  int point_idx = 0; // point index
-  for (PVector p : points) {
+    for (PVector p : f){
+      // depending on the field, use these vars ~~~~~ REFACTOR
+      if (f == blue_field){
+        pal = blue_pal;
+        v1 = swirl(p, 4);
+        time1 = time;
+        time2 = -time;
+      } else if (f == pink_field) {
+        pal = pink_pal;
+        v1 = swirl(p, .05);
+        time1 = -time;
+        time2 = time;
+      } else {
+        pal = green_pal;
+        v1 = swirl(p, 1);
+        time1 = time;
+        time2 = -time;
+      }
+      
+      // map floating point coordinates to screen coordinates
+      float xx = map(p.x, -6.5, 6.5, 0, width);
+      float yy = map(p.y, -6.5, 6.5, 0, height);
+      
+      int cn = (int)(100*pal.length*noise(point))%pal.length;
+      stroke(pal[cn], 15);
+      point(xx, yy); //draw
+       
+      float n1 = map(noise(v1.x,v1.y, time1),0,1,-1,1);
+      float n2 = map(noise(p.x/3, p.y/3, time2),0,1,-1,1);
+      
+      PVector v = waves2(new PVector(n1,n2),9);
+      
+      p.x += vector_scale * v.x;
+      p.y += vector_scale * v.y;
+      
+      point++;
+    }
+   
+   time += 0.001;
+  
+  }
 
-    // map floating point coordinates to screen coordinates
-    float xx = map(p.x, -6.5, 6.5, 0, width);
-    float yy = map(p.y, -6.5, 6.5, 0, height);
- 
-    // select color from palette (index based on noise)
-    int cn = (int)(100*pal.length*noise(point_idx))%pal.length;
-    stroke(pal[cn], 15);
-    point(xx, yy); //draw
-    
-    //PVector v1 = hyperbolic(p, .1);
-    PVector v1 = swirl(p, 4);
-    
-    float n1 = map(noise(v1.x,v1.y,time),0,1,-1,1);
-    float n2 = map(noise(p.x/3, p.y/3,-time),0,1,-1,1);
-    
-    PVector v = waves2(new PVector(n1,n2),9);
-    
-    p.x += vector_scale * v.x;
-    p.y += vector_scale * v.y;
- 
-    // go to the next point
-    point_idx++;
-    
-  }
-  int point_idx2 = 0;
-  for (PVector p : points2) {
-    // map floating point coordinates to screen coordinates
-    float xx = map(p.x, -6.5, 6.5, 0, width);
-    float yy = map(p.y, -6.5, 6.5, 0, height);
- 
-    // select color from palette (index based on noise)
-    int cn = (int)(100*pal2.length*noise(point_idx2))%pal2.length;
-    stroke(pal2[cn], 15);
-    point(xx, yy); //draw
-    
-    PVector v1 = swirl(p, .05);
-    //PVector v1 = circle(.5);
-    
-    float n1 = map(noise(v1.x,v1.y,-time),0,1,-1,1);
-    float n2 = map(noise(p.x/3, p.y/3,time),0,1,-1,1);
-    
-    PVector v = waves2(new PVector(n1,n2),9);
-    
-    p.x += vector_scale * v.x;
-    p.y += vector_scale * v.y;
- 
-    // go to the next point
-    point_idx2++;
-    
-  }
-  
-  int point_idx3 = 0;
-  for (PVector p : points3) {
-    // map floating point coordinates to screen coordinates
-    float xx = map(p.x, -6.5, 6.5, 0, width);
-    float yy = map(p.y, -6.5, 6.5, 0, height);
- 
-    // select color from palette (index based on noise)
-    int cn = (int)(100*pal3.length*noise(point_idx3))%pal3.length;
-    stroke(pal3[cn], 15);
-    point(xx, yy); //draw
-    
-    //PVector v1 = hyperbolic(p, .9);
-    PVector v1 = swirl(p, 1);
-    
-    float n1 = map(noise(v1.x,v1.y,time),0,1,-1,1);
-    float n2 = map(noise(p.x/3, p.y/3,-time),0,1,-1,1);
-    
-    PVector v = waves2(new PVector(n1,n2),9);
-    
-    p.x += vector_scale * v.x;
-    p.y += vector_scale * v.y;
- 
-    // go to the next point
-    point_idx3++;
-    
-  }
-  
-  
-  time += 0.001;
-  
 }
-
 
 
 //FUNCTIONS FOR SHAPES
